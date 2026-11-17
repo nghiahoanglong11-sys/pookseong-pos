@@ -1,46 +1,18 @@
+import { useState } from 'react';
 import { usePosStore } from '../store/usePosStore';
-
+const money = value => `${Math.round(value || 0).toLocaleString('vi-VN')}đ`;
 export function InventoryPage() {
   const inventory = usePosStore(state => state.inventory);
+  const stockLog = usePosStore(state => state.stockLog);
   const addInventory = usePosStore(state => state.addInventory);
-
-  const lowStock = inventory.filter(item => item.stock <= item.min);
-
-  return (
-    <section className="panel">
-      <div className="page-header">
-        <h2>Kho nguyên liệu</h2>
-        <button className="primary-btn" onClick={addInventory}>Nhập kho</button>
-      </div>
-
-      {lowStock.length > 0 && (
-        <div className="alert alert-warning">
-          Sắp hết: {lowStock.map(item => `${item.name} (${item.stock}${item.unit})`).join(', ')}
-        </div>
-      )}
-
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Tên</th>
-              <th>Đơn vị</th>
-              <th className="right">Tồn</th>
-              <th className="right">Ngưỡng</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.map(item => (
-              <tr key={item.id} className={item.stock <= item.min ? 'row-warning' : ''}>
-                <td>{item.name}</td>
-                <td>{item.unit}</td>
-                <td className="right">{item.stock}</td>
-                <td className="right">{item.min}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
+  const adjustStock = usePosStore(state => state.adjustStock);
+  const [form, setForm] = useState({ name: '', unit: 'kg', quantity: '', min: '' });
+  const [message, setMessage] = useState('');
+  function submit(event) { event.preventDefault(); const result = addInventory(form); setMessage(result.ok ? 'Đã thêm nguyên liệu.' : result.error); if (result.ok) setForm({ name: '', unit: 'kg', quantity: '', min: '' }); }
+  function receive(item) { const raw = window.prompt(`Nhập số lượng nhập thêm (${item.unit})`); if (raw === null) return; const amount = Number(raw); if (!Number.isFinite(amount) || amount <= 0) return setMessage('Số lượng nhập phải lớn hơn 0.'); const result = adjustStock(item.id, amount, 'Nhập hàng'); setMessage(result.ok ? `Đã nhập ${amount} ${item.unit} ${item.name}.` : result.error); }
+  return <div className="page-stack"><div className="page-title"><div><h1>Kho nguyên liệu</h1><p>Theo dõi tồn kho và nhập hàng.</p></div><span className="badge">{inventory.length} nguyên liệu</span></div>{message && <div className="notice info" role="status">{message}</div>}
+    <section className="panel"><h2>Thêm nguyên liệu</h2><form className="form-grid" onSubmit={submit}><label className="field-label">Tên<input required value={form.name} onChange={e => setForm({...form,name:e.target.value})} /></label><label className="field-label">Đơn vị<input value={form.unit} onChange={e => setForm({...form,unit:e.target.value})} /></label><label className="field-label">Tồn ban đầu<input type="number" min="0" step="0.01" required value={form.quantity} onChange={e => setForm({...form,quantity:e.target.value})} /></label><label className="field-label">Ngưỡng cảnh báo<input type="number" min="0" step="0.01" value={form.min} onChange={e => setForm({...form,min:e.target.value})} /></label><button className="primary-btn">Thêm nguyên liệu</button></form></section>
+    <section className="panel"><h2>Danh sách tồn kho</h2>{inventory.some(item => item.stock <= item.min) && <div className="notice warning">Sắp hết: {inventory.filter(item => item.stock <= item.min).map(item => item.name).join(', ')}</div>}<div className="table-wrap"><table><thead><tr><th>Nguyên liệu</th><th>Đơn vị</th><th className="right">Tồn</th><th className="right">Tối thiểu</th><th>Trạng thái</th><th></th></tr></thead><tbody>{inventory.map(item => <tr key={item.id}><td><strong>{item.name}</strong></td><td>{item.unit}</td><td className="right">{item.stock}</td><td className="right">{item.min}</td><td><span className={`status ${item.stock <= item.min ? 'warning' : 'success'}`}>{item.stock <= item.min ? 'Sắp hết' : 'Đủ hàng'}</span></td><td><button className="secondary-btn" onClick={() => receive(item)}>+ Nhập</button></td></tr>)}</tbody></table></div></section>
+    <section className="panel"><h2>Lịch sử biến động gần đây</h2><div className="table-wrap"><table><thead><tr><th>Thời gian</th><th>Nguyên liệu</th><th className="right">Thay đổi</th><th>Ghi chú</th></tr></thead><tbody>{stockLog.slice(-20).reverse().map(log => <tr key={log.id}><td>{new Date(log.at).toLocaleString('vi-VN')}</td><td>{log.name}</td><td className="right">{log.change > 0 ? '+' : ''}{log.change}</td><td>{log.note}</td></tr>)}</tbody></table></div></section>
+  </div>;
 }

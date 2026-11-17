@@ -1,68 +1,20 @@
-import { useMemo } from 'react';
-import { usePosStore } from '../store/usePosStore';
-
-export function ProductGrid() {
-  const menu = usePosStore(state => state.menu);
-  const addToCart = usePosStore(state => state.addToCart);
-
-  return (
-    <div className="product-grid">
-      {menu.filter(item => item.active).map(item => (
-        <button key={item.id} className="product-card" onClick={() => addToCart(item)}>
-          <div className="product-name">{item.name}</div>
-          <div className="product-meta">{item.category}</div>
-          <div className="product-price">{item.price.toLocaleString('vi-VN')}đ</div>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export function CartPanel() {
+import { usePosStore, calculateCart } from '../store/usePosStore';
+const money = value => `${Math.round(value || 0).toLocaleString('vi-VN')}đ`;
+export function CartPanel({ onCheckout }) {
   const cart = usePosStore(state => state.cart);
   const changeQty = usePosStore(state => state.changeQty);
   const removeFromCart = usePosStore(state => state.removeFromCart);
-
-  const total = useMemo(
-    () => cart.reduce((sum, item) => sum + item.price * item.qty, 0),
-    [cart]
-  );
-
-  return (
-    <aside className="cart-panel">
-      <div className="panel-header">
-        <h3>Đơn hiện tại</h3>
-        <span className="badge">{cart.reduce((q, item) => q + item.qty, 0)} món</span>
-      </div>
-
-      <div className="cart-items">
-        {cart.length === 0 ? (
-          <div className="empty-state">Chưa có món nào.</div>
-        ) : (
-          cart.map(item => (
-            <div key={item.id} className="cart-item">
-              <div className="cart-item-main">
-                <strong>{item.name}</strong>
-                <small>{item.price.toLocaleString('vi-VN')}đ</small>
-              </div>
-              <div className="qty-control">
-                <button onClick={() => changeQty(item.id, -1)}>-</button>
-                <span>{item.qty}</span>
-                <button onClick={() => changeQty(item.id, 1)}>+</button>
-              </div>
-              <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Xóa</button>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="summary-box">
-        <div className="row">
-          <span>Tổng</span>
-          <strong>{total.toLocaleString('vi-VN')}đ</strong>
-        </div>
-        <button className="primary-btn">Thanh toán</button>
-      </div>
-    </aside>
-  );
+  const customers = usePosStore(state => state.customers);
+  const selectedCustomerId = usePosStore(state => state.selectedCustomerId);
+  const selectCustomer = usePosStore(state => state.selectCustomer);
+  const promoCode = usePosStore(state => state.promoCode);
+  const setPromoCode = usePosStore(state => state.setPromoCode);
+  const promotions = usePosStore(state => state.promotions);
+  const totals = calculateCart(cart, promoCode, promotions);
+  return <aside className="cart-panel panel"><div className="panel-header"><div><h2>Đơn hiện tại</h2><small className="muted">{cart.reduce((sum,item) => sum + item.qty, 0)} món</small></div><span className="badge">{cart.length ? 'Đang tạo' : 'Trống'}</span></div>
+    <div className="cart-items">{cart.length ? cart.map(item => <div key={item.productId} className="cart-item"><div className="cart-item-main"><strong>{item.name}</strong><small>{money(item.price)} / món</small><b>{money(item.price * item.qty)}</b></div><div className="qty-control"><button aria-label={`Giảm ${item.name}`} onClick={() => changeQty(item.productId,-1)}>−</button><span>{item.qty}</span><button aria-label={`Tăng ${item.name}`} onClick={() => changeQty(item.productId,1)}>+</button></div><button className="remove-btn" onClick={() => removeFromCart(item.productId)}>Xóa</button></div>) : <div className="empty-state">Chọn món để bắt đầu đơn hàng.</div>}</div>
+    <label className="field-label">Khách hàng<select value={selectedCustomerId} onChange={event => selectCustomer(event.target.value)}><option value="">Khách lẻ</option>{customers.map(customer => <option key={customer.id} value={customer.id}>{customer.name} · {customer.code}</option>)}</select></label>
+    <label className="field-label">Mã khuyến mãi<input value={promoCode} onChange={event => setPromoCode(event.target.value.toUpperCase())} placeholder="Ví dụ: POOK10" /></label>
+    <div className="summary-box"><div className="row"><span>Tạm tính</span><span>{money(totals.subtotal)}</span></div>{totals.promo ? <div className="row discount-row"><span>{totals.promo.name}</span><span>−{money(totals.discount)}</span></div> : promoCode ? <small className="muted">Mã chưa áp dụng hoặc chưa đủ điều kiện.</small> : null}<div className="row total-row"><strong>Tổng thanh toán</strong><strong>{money(totals.total)}</strong></div><button className="primary-btn" disabled={!cart.length} onClick={onCheckout}>Thanh toán</button><button className="text-btn" disabled={!cart.length} onClick={() => usePosStore.getState().clearCart()}>Xóa đơn</button></div>
+  </aside>;
 }

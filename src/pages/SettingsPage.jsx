@@ -1,37 +1,10 @@
+import { useState } from 'react';
 import { usePosStore } from '../store/usePosStore';
-
 export function SettingsPage() {
   const shop = usePosStore(state => state.shop);
   const updateShop = usePosStore(state => state.updateShop);
-
-  return (
-    <section className="panel">
-      <div className="page-header">
-        <h2>Cài đặt quán</h2>
-      </div>
-
-      <div className="settings-grid">
-        <label>
-          Tên quán
-          <input value={shop.name} onChange={e => updateShop({ name: e.target.value })} />
-        </label>
-        <label>
-          Địa chỉ
-          <input value={shop.address} onChange={e => updateShop({ address: e.target.value })} />
-        </label>
-        <label>
-          Zalo
-          <input value={shop.zalo} onChange={e => updateShop({ zalo: e.target.value })} />
-        </label>
-        <label>
-          Tỷ lệ tích điểm
-          <input value={shop.pointRate} onChange={e => updateShop({ pointRate: Number(e.target.value) || 0 })} />
-        </label>
-        <label>
-          Giá trị 1 điểm
-          <input value={shop.pointValue} onChange={e => updateShop({ pointValue: Number(e.target.value) || 0 })} />
-        </label>
-      </div>
-    </section>
-  );
+  const exportBackup = usePosStore(state => state.exportBackup);
+  const [message, setMessage] = useState('');
+  function downloadBackup() { const blob = new Blob([exportBackup()], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `pookseong-backup-${new Date().toISOString().slice(0,10)}.json`; anchor.click(); URL.revokeObjectURL(url); setMessage('Đã tải bản sao lưu dữ liệu.'); }
+  return <div className="page-stack"><div className="page-title"><div><h1>Cài đặt</h1><p>Thông tin cửa hàng, tích điểm và sao lưu.</p></div></div>{message && <div className="notice info" role="status">{message}</div>}<section className="panel"><h2>Thông tin cửa hàng</h2><div className="settings-grid"><label className="field-label">Tên quán<input value={shop.name} onChange={e => updateShop({ name: e.target.value })} /></label><label className="field-label">Địa chỉ<input value={shop.address} onChange={e => updateShop({ address: e.target.value })} /></label><label className="field-label">Zalo<input inputMode="tel" value={shop.zalo} onChange={e => updateShop({ zalo: e.target.value.replace(/\D/g,'') })} /></label><label className="field-label">Số tiền tích 1 điểm<input type="number" min="1" value={shop.pointRate} onChange={e => updateShop({ pointRate: Math.max(1, Number(e.target.value) || 1) })} /></label><label className="field-label">Giá trị 1 điểm (đ)<input type="number" min="0" value={shop.pointValue} onChange={e => updateShop({ pointValue: Math.max(0, Number(e.target.value) || 0) })} /></label></div></section><section className="panel"><h2>Sao lưu</h2><p className="muted">Tải dữ liệu bán hàng của trình duyệt này xuống tệp JSON. Đây chưa phải sao lưu đám mây và không đồng bộ giữa nhiều thiết bị.</p><button className="primary-btn" onClick={downloadBackup}>Xuất bản sao lưu</button></section></div>;
 }

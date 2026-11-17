@@ -5,53 +5,40 @@ import { InventoryPage } from './pages/InventoryPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CustomerPortalPage } from './pages/CustomerPortalPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { PromotionsPage } from './pages/PromotionsPage';
 
-const pages = {
-  pos: { label: 'Bán hàng', component: POSPage },
-  inventory: { label: 'Kho', component: InventoryPage },
-  customers: { label: 'Khách hàng', component: CustomersPage },
-  settings: { label: 'Cài đặt', component: SettingsPage },
-  customerPortal: { label: 'Khách hàng', component: CustomerPortalPage }
-};
+const pages = [
+  ['pos', 'Bán hàng', POSPage],
+  ['orders', 'Đơn hàng', OrdersPage],
+  ['inventory', 'Kho', InventoryPage],
+  ['customers', 'Khách hàng', CustomersPage],
+  ['promotions', 'Khuyến mãi', PromotionsPage],
+  ['customerPortal', 'Cổng khách', CustomerPortalPage],
+  ['settings', 'Cài đặt', SettingsPage]
+];
 
 export default function App() {
   const shop = usePosStore(state => state.shop);
   const init = usePosStore(state => state.init);
+  const orders = usePosStore(state => state.orders);
   const [activePage, setActivePage] = useState('pos');
 
-  useEffect(() => {
-    init();
-  }, [init]);
-
-  const PageContent = pages[activePage]?.component ?? POSPage;
+  useEffect(() => { init(); }, [init]);
+  const PageContent = pages.find(([key]) => key === activePage)?.[2] ?? POSPage;
+  const todayOrders = orders.filter(order => new Date(order.createdAt).toDateString() === new Date().toDateString());
 
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand-wrap">
-          <div className="brand-logo">P</div>
-          <div>
-            <strong>{shop.name}</strong>
-            <div className="subtle">{shop.address}</div>
-          </div>
-        </div>
-
-        <nav className="topnav">
-          {Object.entries(pages).map(([key, value]) => (
-            <button
-              key={key}
-              className={activePage === key ? 'nav-btn active' : 'nav-btn'}
-              onClick={() => setActivePage(key)}
-            >
-              {value.label}
-            </button>
-          ))}
-        </nav>
+        <div className="brand-wrap"><div className="brand-logo" aria-hidden="true">P</div><div><strong>{shop.name}</strong><div className="subtle">{shop.address}</div></div></div>
+        <div className="topbar-meta"><span>{todayOrders.length} đơn hôm nay</span><strong>{todayOrders.reduce((sum, order) => sum + order.total, 0).toLocaleString('vi-VN')}đ</strong></div>
       </header>
-
-      <main className="main-layout">
-        <PageContent />
-      </main>
+      <nav className="topnav" aria-label="Điều hướng chính">
+        {pages.map(([key, label]) => <button key={key} className={activePage === key ? 'nav-btn active' : 'nav-btn'} onClick={() => setActivePage(key)}>{label}</button>)}
+      </nav>
+      <main className="main-layout"><PageContent /></main>
+      <footer className="app-footer">Dữ liệu được lưu trên trình duyệt này. Hãy sao lưu thường xuyên.</footer>
     </div>
   );
 }
