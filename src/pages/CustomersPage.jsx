@@ -16,8 +16,8 @@ export function CustomersPage() {
               <th>Tên</th>
               <th>SĐT</th>
               <th>Mã</th>
-              <th>Điểm</th>
-              <th>Tổng chi</th>
+              <th className="right">Điểm</th>
+              <th className="right">Tổng chi</th>
             </tr>
           </thead>
           <tbody>
@@ -26,8 +26,8 @@ export function CustomersPage() {
                 <td>{customer.name}</td>
                 <td>{customer.phone}</td>
                 <td>{customer.code}</td>
-                <td>{customer.points}</td>
-                <td>{customer.totalSpent.toLocaleString('vi-VN')}đ</td>
+                <td className="right">{customer.points}</td>
+                <td className="right">{customer.totalSpent.toLocaleString('vi-VN')}đ</td>
               </tr>
             ))}
           </tbody>

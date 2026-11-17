@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePosStore } from './store/usePosStore';
-import { ProductGrid } from './components/ProductGrid';
-import { CartPanel } from './components/CartPanel';
 import { POSPage } from './pages/POSPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { CustomersPage } from './pages/CustomersPage';
@@ -17,7 +15,8 @@ const pages = {
 };
 
 export default function App() {
-  const { shop, menu, customer, cart, init, addToCart } = usePosStore();
+  const shop = usePosStore(state => state.shop);
+  const init = usePosStore(state => state.init);
   const [activePage, setActivePage] = useState('pos');
 
   useEffect(() => {

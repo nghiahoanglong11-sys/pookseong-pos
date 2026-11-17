@@ -23,6 +23,7 @@ export const usePosStore = create((set, get) => ({
   init: () => {
     const saved = safeLoad();
     if (!saved) return;
+
     set({
       shop: { ...seedData.shop, ...saved.shop },
       menu: saved.menu ?? seedData.menu,
@@ -45,19 +46,21 @@ export const usePosStore = create((set, get) => ({
     }));
   },
 
-  updateShop: (patch) => {
+  updateShop: patch => {
     set(state => ({ shop: { ...state.shop, ...patch } }));
     get().persist();
   },
 
   addToCart: item => {
     const cart = get().cart;
-    const exists = cart.find(x => x.id === item.id);
+    const exists = cart.find(entry => entry.id === item.id);
+
     if (exists) {
-      set({ cart: cart.map(x => x.id === item.id ? { ...x, qty: x.qty + 1 } : x) });
+      set({ cart: cart.map(entry => entry.id === item.id ? { ...entry, qty: entry.qty + 1 } : entry) });
     } else {
       set({ cart: [...cart, { ...item, qty: 1 }] });
     }
+
     get().persist();
   },
 

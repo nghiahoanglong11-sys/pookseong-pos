@@ -23,6 +23,14 @@ export function SettingsPage() {
           Zalo
           <input value={shop.zalo} onChange={e => updateShop({ zalo: e.target.value })} />
         </label>
+        <label>
+          Tỷ lệ tích điểm
+          <input value={shop.pointRate} onChange={e => updateShop({ pointRate: Number(e.target.value) || 0 })} />
+        </label>
+        <label>
+          Giá trị 1 điểm
+          <input value={shop.pointValue} onChange={e => updateShop({ pointValue: Number(e.target.value) || 0 })} />
+        </label>
       </div>
     </section>
   );

@@ -1,19 +1,14 @@
 import { useMemo } from 'react';
+import { usePosStore } from '../store/usePosStore';
 
-export function StatCard({ label, value, tone = 'default' }) {
-  return (
-    <div className={`stat-card tone-${tone}`}>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-    </div>
-  );
-}
+export function ProductGrid() {
+  const menu = usePosStore(state => state.menu);
+  const addToCart = usePosStore(state => state.addToCart);
 
-export function ProductGrid({ products, onAdd }) {
   return (
     <div className="product-grid">
-      {products.map(item => (
-        <button key={item.id} className="product-card" onClick={() => onAdd(item)}>
+      {menu.filter(item => item.active).map(item => (
+        <button key={item.id} className="product-card" onClick={() => addToCart(item)}>
           <div className="product-name">{item.name}</div>
           <div className="product-meta">{item.category}</div>
           <div className="product-price">{item.price.toLocaleString('vi-VN')}đ</div>
@@ -23,35 +18,39 @@ export function ProductGrid({ products, onAdd }) {
   );
 }
 
-export function CartPanel({ items, onRemove, onQtyChange, onCheckout }) {
+export function CartPanel() {
+  const cart = usePosStore(state => state.cart);
+  const changeQty = usePosStore(state => state.changeQty);
+  const removeFromCart = usePosStore(state => state.removeFromCart);
+
   const total = useMemo(
-    () => items.reduce((sum, item) => sum + item.price * item.qty, 0),
-    [items]
+    () => cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+    [cart]
   );
 
   return (
     <aside className="cart-panel">
       <div className="panel-header">
         <h3>Đơn hiện tại</h3>
-        <span className="badge">{items.reduce((q, i) => q + i.qty, 0)} món</span>
+        <span className="badge">{cart.reduce((q, item) => q + item.qty, 0)} món</span>
       </div>
 
       <div className="cart-items">
-        {items.length === 0 ? (
+        {cart.length === 0 ? (
           <div className="empty-state">Chưa có món nào.</div>
         ) : (
-          items.map(item => (
+          cart.map(item => (
             <div key={item.id} className="cart-item">
               <div className="cart-item-main">
                 <strong>{item.name}</strong>
-                <span>{item.price.toLocaleString('vi-VN')}đ</span>
+                <small>{item.price.toLocaleString('vi-VN')}đ</small>
               </div>
               <div className="qty-control">
-                <button onClick={() => onQtyChange(item.id, -1)}>-</button>
+                <button onClick={() => changeQty(item.id, -1)}>-</button>
                 <span>{item.qty}</span>
-                <button onClick={() => onQtyChange(item.id, 1)}>+</button>
+                <button onClick={() => changeQty(item.id, 1)}>+</button>
               </div>
-              <button className="remove-btn" onClick={() => onRemove(item.id)}>Xóa</button>
+              <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Xóa</button>
             </div>
           ))
         )}
@@ -62,7 +61,7 @@ export function CartPanel({ items, onRemove, onQtyChange, onCheckout }) {
           <span>Tổng</span>
           <strong>{total.toLocaleString('vi-VN')}đ</strong>
         </div>
-        <button className="primary-btn" onClick={onCheckout}>Thanh toán</button>
+        <button className="primary-btn">Thanh toán</button>
       </div>
     </aside>
   );

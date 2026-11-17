@@ -14,7 +14,8 @@ body {
   color: #1f2937;
 }
 
-button, input {
+button, input,
+select, textarea {
   font: inherit;
 }
 
@@ -270,6 +271,26 @@ th {
   color: #5b6677;
   font-size: .8rem;
   text-transform: uppercase;
+}
+
+.right {
+  text-align: right;
+}
+
+.row-warning {
+  background: #fff7ed;
+}
+
+.alert {
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.alert-warning {
+  background: #fff7ed;
+  color: #9a5b00;
+  border: 1px solid #fed7aa;
 }
 
 .settings-grid {

@@ -13,9 +13,9 @@ export function CustomerPortalPage() {
           <p>Quét mã hoặc tạo tài khoản để tích điểm và nhận ưu đãi.</p>
         </div>
         <div className="customer-list">
-          {customers.map(c => (
-            <div key={c.id} className="customer-pill">
-              {c.name} · {c.points} điểm
+          {customers.map(customer => (
+            <div key={customer.id} className="customer-pill">
+              {customer.name} · {customer.points} điểm
             </div>
           ))}
         </div>

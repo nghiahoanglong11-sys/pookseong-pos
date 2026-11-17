@@ -1,16 +1,8 @@
-import { useEffect, useState } from 'react';
 import { usePosStore } from '../store/usePosStore';
-import { ProductGrid } from '../components/ProductGrid';
-import { CartPanel } from '../components/CartPanel';
 
 export function POSPage() {
   const menu = usePosStore(state => state.menu);
-  const cart = usePosStore(state => state.cart);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    // fix: only render after init
-  }, []);
 
   const filteredMenu = menu.filter(item => {
     const q = search.trim().toLowerCase();
@@ -29,7 +21,19 @@ export function POSPage() {
           />
         </div>
 
-        <ProductGrid products={filteredMenu} />
+        <div className="product-grid">
+          {filteredMenu.filter(item => item.active).map(item => (
+            <button
+              key={item.id}
+              className="product-card"
+              onClick={() => addToCart(item)}
+            >
+              <div className="product-name">{item.name}</div>
+              <div className="product-meta">{item.category}</div>
+              <div className="product-price">{item.price.toLocaleString('vi-VN')}đ</div>
+            </button>
+          ))}
+        </div>
       </section>
 
       <CartPanel />
